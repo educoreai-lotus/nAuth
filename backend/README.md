@@ -21,6 +21,13 @@ Node.js + Express foundation for the nAuth microservice.
   - `GET /auth/github/callback`
 - Provider callback token exchange + profile fetch + normalization (Google/GitHub)
 - Temporary OAuth state protection (in-memory + HTTPOnly state cookie, non-final)
+- Signed Coordinator directory lookup after provider callback (no payload encryption, TLS transport)
+- OAuth callback business decision states:
+  - `AUTHENTICATED_LINKED`
+  - `AUTHENTICATED_NO_ORG`
+  - `USER_NOT_FOUND`
+  - `LOOKUP_FAILED`
+- Server-side lookup storage prepared for `directory_user_id`, `full_name`, `organization_id`, `organization_name`
 - Coordinator Stage 1 auto-registration on startup with `SERVICE_ID` guard
 - Coordinator Stage 2 auto-migration on startup with `MIGRATION_UPLOADED` guard
 
@@ -28,7 +35,7 @@ Node.js + Express foundation for the nAuth microservice.
 - Final authentication/session business logic after provider callback
 - JWT issuing/signing
 - Refresh token and logout flows
-- Coordinator/Directory integration
+- Persisting lookup/session records to DB
 - Real database integration
 
 ## Deployment target
@@ -49,3 +56,18 @@ Node.js + Express foundation for the nAuth microservice.
 - After successful upload, set `MIGRATION_UPLOADED=1` manually in Railway ENV.
 - No GET `/register/{SERVICE_ID}` status-check is used.
 - See `backend/docs/coordinator-registration.md` for details.
+
+## Coordinator directory lookup
+- nAuth sends signed request payloads to Coordinator for Directory routing.
+- Signature model:
+  - `payloadString = JSON.stringify(payload)`
+  - `payloadHash = sha256(payloadString)`
+  - `message = "educoreai-nAuth-" + payloadHash`
+  - sign with ECDSA P-256 + SHA-256 using `NAUTH_PRIVATE_KEY`
+- Required headers:
+  - `Content-Type: application/json`
+  - `X-Service-Name: nAuth`
+  - `X-Signature: <base64 signature>`
+- Request envelope:
+  - `{ requester_name, payload, response }`
+- No user/org data is stored in cookies; server-side structure is prepared only.

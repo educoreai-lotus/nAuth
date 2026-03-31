@@ -1,4 +1,6 @@
 import { AppError } from '../utils/AppError.js'
+import { saveDirectoryLookupResult } from '../repositories/directoryLookupStore.js'
+import { lookupUserViaCoordinator } from '../services/coordinator/directoryLookupService.js'
 import {
   buildProviderAuthorizationUrl,
   clearOauthStateCookie,
@@ -39,14 +41,25 @@ export async function oauthCallbackController(req, res, next) {
       authorizationCode: String(code),
     })
 
+    const lookupResult = await lookupUserViaCoordinator(providerIdentity)
+    const serverSideRecord = saveDirectoryLookupResult({
+      providerIdentity,
+      directoryData: lookupResult.directoryData,
+      authState: lookupResult.authState,
+    })
+
     clearOauthStateCookie(res)
 
     res.status(200).json({
       success: true,
       data: {
         providerIdentity,
-        flowStatus: 'OAUTH_PROVIDER_AUTHENTICATED',
-        nextStep: 'Session creation and JWT issuance are intentionally deferred.',
+        directoryData: lookupResult.directoryData,
+        authState: lookupResult.authState,
+        nextStep: lookupResult.nextStep,
+        serverSideLookup: {
+          lookup_id: serverSideRecord.id,
+        },
       },
     })
   } catch (error) {
