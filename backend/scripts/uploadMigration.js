@@ -15,6 +15,11 @@ function requireEnv(name) {
 async function run() {
   console.log('Starting manual Stage 2 migration upload...')
 
+  if (process.env.MIGRATION_UPLOADED === '1') {
+    console.log('Migration already marked as uploaded. Skipping.')
+    return
+  }
+
   const coordinatorApiUrl = requireEnv('COORDINATOR_API_URL').replace(/\/+$/, '')
   const serviceId = requireEnv('SERVICE_ID')
   const migrationFile = buildNauthMigrationPayload()
@@ -49,7 +54,11 @@ async function run() {
     throw new Error(`Unexpected migration response status: ${parsedBody.status}`)
   }
 
-  console.log('Migration successful. nAuth should now become ACTIVE in Coordinator.')
+  console.log('========================================')
+  console.log('Migration uploaded successfully')
+  console.log('nAuth should now be ACTIVE in Coordinator')
+  console.log('IMPORTANT: Set MIGRATION_UPLOADED=1 in Railway ENV')
+  console.log('========================================')
 }
 
 run().catch((error) => {

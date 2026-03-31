@@ -1,16 +1,17 @@
-# Coordinator Registration (Stage 1 Auto, Stage 2 Manual)
+# Coordinator Registration (Stage 1 Auto, Stage 2 Auto With Env Guard)
 
 ## Purpose
 
 Handle Coordinator integration in two parts:
 1. Stage 1 registration (`/register`) on startup when `SERVICE_ID` is missing.
-2. Stage 2 migration upload (`/register/{SERVICE_ID}/migration`) via manual one-time script.
+2. Stage 2 migration upload (`/register/{SERVICE_ID}/migration`) on startup with `MIGRATION_UPLOADED` guard.
 
 ## Required Environment Variables
 
 - `COORDINATOR_API_URL` (required): Coordinator base API URL.
 - `BACKEND_BASE_URL` (required): Public nAuth backend URL used as service endpoint.
 - `SERVICE_ID` (optional but important): if present, startup registration is skipped.
+- `MIGRATION_UPLOADED` (manual Stage 2 guard): if set to `1`, migration upload script skips re-upload.
 - `COORDINATOR_PUBLIC_KEY` (optional placeholder): reserved for future encrypted communication protocol.
 
 > `COORDINATOR_PUBLIC_KEY` is not used yet because no concrete encryption protocol/contract is defined.
@@ -30,23 +31,20 @@ On each service startup:
    - expect `serviceId` and status `pending_migration` (or compatible)
    - print clear output instructing manual save of `SERVICE_ID` in Railway.
 
-## Stage 2 Manual Migration Upload
+## Stage 2 Startup Migration Upload
 
-Run migration manually while service is in `pending_migration`:
-
-From `backend/`:
-
-`npm run upload-migration`
-
-Script behavior:
-1. Requires `COORDINATOR_API_URL` and `SERVICE_ID`.
-2. Builds nAuth ecosystem-style migration payload.
-3. Calls:
-   - `POST ${COORDINATOR_API_URL}/register/{SERVICE_ID}/migration`
+On startup:
+1. If `SERVICE_ID` is missing:
+   - skip migration upload.
+2. If `SERVICE_ID` exists and `MIGRATION_UPLOADED === "1"`:
+   - log: `Migration already uploaded. Skipping.`
+3. If `SERVICE_ID` exists and `MIGRATION_UPLOADED` is missing/not `1`:
+   - call:
+     - `POST ${COORDINATOR_API_URL}/register/{SERVICE_ID}/migration`
    - body:
      - `{ migrationFile: <payload> }`
-4. On success logs:
-   - `Migration successful. nAuth should now become ACTIVE in Coordinator.`
+4. On success log:
+   - `IMPORTANT: Set MIGRATION_UPLOADED=1 in Railway ENV`
 
 ## Optional Manual Stage 1 Run
 
@@ -60,11 +58,11 @@ From `backend/`:
 - No retry loops/background jobs are implemented.
 - No GET status-check dependency is used for migration.
 - Re-registration behavior is controlled by `SERVICE_ID` presence in Railway ENV.
+- Migration re-upload avoidance is controlled manually via `MIGRATION_UPLOADED=1`.
 
 ## Deferred
 
 - Directory integration.
-- Automatic migration upload on startup.
 - Any GET `/register/{SERVICE_ID}` status-check flow.
 - Any encrypted registration protocol using `COORDINATOR_PUBLIC_KEY`.
 - JWT/session/refresh/logout business logic.

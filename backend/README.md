@@ -22,7 +22,7 @@ Node.js + Express foundation for the nAuth microservice.
 - Provider callback token exchange + profile fetch + normalization (Google/GitHub)
 - Temporary OAuth state protection (in-memory + HTTPOnly state cookie, non-final)
 - Coordinator Stage 1 auto-registration on startup with `SERVICE_ID` guard
-- Coordinator Stage 2 manual migration upload script (`upload-migration`)
+- Coordinator Stage 2 auto-migration on startup with `MIGRATION_UPLOADED` guard
 
 ## Intentionally NOT implemented yet
 - Final authentication/session business logic after provider callback
@@ -41,8 +41,11 @@ Node.js + Express foundation for the nAuth microservice.
   - If `SERVICE_ID` exists in env: skip registration.
   - If `SERVICE_ID` is missing: attempt Stage 1 registration and print returned `SERVICE_ID`.
 - Save printed `SERVICE_ID` manually in Railway ENV to prevent duplicate registration on future deploys.
-- Stage 2 migration is manual and one-time via:
-  - `npm run upload-migration`
-  - which calls `POST /register/{SERVICE_ID}/migration`
+- Stage 2 migration runs on startup only when:
+  - `SERVICE_ID` exists
+  - `MIGRATION_UPLOADED` is missing or not equal to `1`
+- It calls `POST /register/{SERVICE_ID}/migration`.
+- If `MIGRATION_UPLOADED=1`, migration upload is skipped.
+- After successful upload, set `MIGRATION_UPLOADED=1` manually in Railway ENV.
 - No GET `/register/{SERVICE_ID}` status-check is used.
 - See `backend/docs/coordinator-registration.md` for details.

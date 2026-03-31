@@ -1,3 +1,5 @@
+import { buildNauthMigrationPayload } from './registrationPayload.js'
+
 function assertCoordinatorApiUrl() {
   const coordinatorApiUrl = process.env.COORDINATOR_API_URL
 
@@ -103,6 +105,46 @@ export async function autoRegisterOnStartup() {
     return { skipped: false, registration }
   } catch (error) {
     console.error('Coordinator registration failed during startup.')
+    console.error(error.message)
+    return { skipped: false, error: error.message }
+  }
+}
+
+export async function autoUploadMigrationOnStartup() {
+  if (!process.env.SERVICE_ID) {
+    console.log('SERVICE_ID missing. Skipping migration upload.')
+    return { skipped: true }
+  }
+
+  if (process.env.MIGRATION_UPLOADED === '1') {
+    console.log('Migration already uploaded. Skipping.')
+    return { skipped: true }
+  }
+
+  try {
+    const coordinatorApiUrl = assertCoordinatorApiUrl()
+    const serviceId = process.env.SERVICE_ID
+    const migrationFile = buildNauthMigrationPayload()
+    const url = `${coordinatorApiUrl}/register/${serviceId}/migration`
+
+    const response = await postJson(
+      url,
+      { migrationFile },
+      'Coordinator migration upload failed.',
+    )
+
+    if (response.status && response.status !== 'active') {
+      throw new Error(`Unexpected migration response status: ${response.status}`)
+    }
+
+    console.log('========================================')
+    console.log('Migration uploaded successfully')
+    console.log('nAuth should now be ACTIVE')
+    console.log('IMPORTANT: Set MIGRATION_UPLOADED=1 in Railway ENV')
+    console.log('========================================')
+    return { skipped: false, status: response.status || 'active' }
+  } catch (error) {
+    console.error('Coordinator migration upload failed during startup.')
     console.error(error.message)
     return { skipped: false, error: error.message }
   }
