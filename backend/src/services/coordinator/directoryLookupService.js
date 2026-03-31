@@ -11,8 +11,12 @@ function getCoordinatorApiUrl() {
 }
 
 function buildLookupPayload(providerIdentity) {
+  const action =
+    'Collecting Directory information for authenticated user lookup and organization association.'
+
   if (providerIdentity.provider === 'google') {
     const payload = {
+      action,
       provider: 'google',
     }
 
@@ -25,6 +29,7 @@ function buildLookupPayload(providerIdentity) {
 
   if (providerIdentity.provider === 'github') {
     const payload = {
+      action,
       provider: 'github',
       provider_user_id: providerIdentity.provider_user_id,
     }
@@ -86,7 +91,7 @@ function decideAuthState(directoryData) {
 export async function lookupUserViaCoordinator(providerIdentity) {
   const payload = buildLookupPayload(providerIdentity)
   const requestBody = {
-    requester_name: 'nAuth',
+    requester_service: 'nAuth',
     payload,
     response: {
       user_exists: false,

@@ -32,7 +32,7 @@ This step returns Directory identity context and maps it to auth decision states
 
 ```json
 {
-  "requester_name": "nAuth",
+  "requester_service": "nAuth",
   "payload": {},
   "response": {
     "user_exists": false,
@@ -48,11 +48,15 @@ This step returns Directory identity context and maps it to auth decision states
 
 Only provider-derived identity fields are sent.
 Do not send empty/undefined/null values.
+`payload.action` is required and used by Coordinator routing:
+
+`Collecting Directory information for authenticated user lookup and organization association.`
 
 ### Google Example
 
 ```json
 {
+  "action": "Collecting Directory information for authenticated user lookup and organization association.",
   "provider": "google",
   "email": "user@example.com"
 }
@@ -62,6 +66,7 @@ Do not send empty/undefined/null values.
 
 ```json
 {
+  "action": "Collecting Directory information for authenticated user lookup and organization association.",
   "provider": "github",
   "github_profile_url": "https://github.com/username",
   "provider_user_id": "123456"
