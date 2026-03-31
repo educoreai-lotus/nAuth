@@ -106,6 +106,12 @@ export async function lookupUserViaCoordinator(providerIdentity) {
   const url = `${getCoordinatorApiUrl()}/request`
 
   try {
+    console.log('[nAuth][DirectoryLookup] Outgoing request body:', JSON.stringify(requestBody))
+    console.log(
+      '[nAuth][DirectoryLookup] Outgoing payload keys:',
+      Object.keys(requestBody.payload || {}),
+    )
+
     const response = await fetch(url, {
       method: 'POST',
       headers,
