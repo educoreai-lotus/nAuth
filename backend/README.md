@@ -21,6 +21,7 @@ Node.js + Express foundation for the nAuth microservice.
 - Provider callback token exchange + profile fetch + normalization (Google/GitHub)
 - Temporary OAuth state protection (in-memory + HTTPOnly state cookie, non-final)
 - Coordinator Stage 1 auto-registration on startup with `SERVICE_ID` guard
+- Coordinator Stage 2 auto-migration upload on startup based on Coordinator status
 
 ## Intentionally NOT implemented yet
 - Final authentication/session business logic after provider callback
@@ -35,10 +36,12 @@ Node.js + Express foundation for the nAuth microservice.
 - Database target for this service is Supabase PostgreSQL via environment-provided connection URL(s).
 
 ## Coordinator registration
-- Current implementation is Stage 1 only: `POST /register` -> `pending_migration`.
 - Startup behavior:
   - If `SERVICE_ID` exists in env: skip registration.
   - If `SERVICE_ID` is missing: attempt Stage 1 registration and print returned `SERVICE_ID`.
 - Save printed `SERVICE_ID` manually in Railway ENV to prevent duplicate registration on future deploys.
-- Stage 2 migration upload is deferred.
+- When `SERVICE_ID` exists, startup checks `GET /register/{SERVICE_ID}`:
+  - `active` -> skip migration
+  - `pending_migration` -> auto-upload migration via `POST /register/{SERVICE_ID}/migration`
+- Coordinator status is the source of truth (no extra migration flags).
 - See `backend/docs/coordinator-registration.md` for details.
