@@ -1,10 +1,10 @@
-# Coordinator Registration and Auto-Migration
+# Coordinator Registration (Stage 1 Auto, Stage 2 Manual)
 
 ## Purpose
 
-Handle Coordinator integration during startup in two safe parts:
-1. Stage 1 registration (`/register`) when `SERVICE_ID` is missing.
-2. Stage 2 migration upload (`/register/{SERVICE_ID}/migration`) when Coordinator status is `pending_migration`.
+Handle Coordinator integration in two parts:
+1. Stage 1 registration (`/register`) on startup when `SERVICE_ID` is missing.
+2. Stage 2 migration upload (`/register/{SERVICE_ID}/migration`) via manual one-time script.
 
 ## Required Environment Variables
 
@@ -30,20 +30,23 @@ On each service startup:
    - expect `serviceId` and status `pending_migration` (or compatible)
    - print clear output instructing manual save of `SERVICE_ID` in Railway.
 
-## Startup Auto-Migration Behavior
+## Stage 2 Manual Migration Upload
 
-After Stage 1 handling, startup checks Coordinator status when `SERVICE_ID` exists:
+Run migration manually while service is in `pending_migration`:
 
-1. `GET ${COORDINATOR_API_URL}/register/{SERVICE_ID}`
-2. If status is `active`:
-   - log: `Service already active. Skipping migration.`
-3. If status is `pending_migration`:
-   - upload migration via:
-     - `POST ${COORDINATOR_API_URL}/register/{SERVICE_ID}/migration`
-   - on success log:
-     - `Migration successful. nAuth is now ACTIVE.`
-4. If status is unknown:
-   - log clear error and skip safely.
+From `backend/`:
+
+`npm run upload-migration`
+
+Script behavior:
+1. Requires `COORDINATOR_API_URL` and `SERVICE_ID`.
+2. Builds nAuth ecosystem-style migration payload.
+3. Calls:
+   - `POST ${COORDINATOR_API_URL}/register/{SERVICE_ID}/migration`
+   - body:
+     - `{ migrationFile: <payload> }`
+4. On success logs:
+   - `Migration successful. nAuth should now become ACTIVE in Coordinator.`
 
 ## Optional Manual Stage 1 Run
 
@@ -54,13 +57,14 @@ From `backend/`:
 ## Safety Rules
 
 - Startup registration must not crash the service on failure; errors are logged clearly.
-- Startup migration check/upload must not crash the service on failure; errors are logged clearly.
 - No retry loops/background jobs are implemented.
-- No migration sent flags are used; Coordinator status is the single source of truth.
+- No GET status-check dependency is used for migration.
 - Re-registration behavior is controlled by `SERVICE_ID` presence in Railway ENV.
 
 ## Deferred
 
 - Directory integration.
+- Automatic migration upload on startup.
+- Any GET `/register/{SERVICE_ID}` status-check flow.
 - Any encrypted registration protocol using `COORDINATOR_PUBLIC_KEY`.
 - JWT/session/refresh/logout business logic.

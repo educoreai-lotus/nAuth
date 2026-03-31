@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
-    "register:coordinator": "node scripts/registerWithCoordinator.js"
+    "register:coordinator": "node scripts/registerWithCoordinator.js",
+    "upload-migration": "node scripts/uploadMigration.js"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
