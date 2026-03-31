@@ -12,7 +12,7 @@ function getCoordinatorApiUrl() {
 
 function buildLookupPayload(providerIdentity) {
   const action =
-    'Collecting Directory information for authenticated user lookup and organization association.'
+    'Route this request to Directory service only for user lookup and organization association.'
 
   if (providerIdentity.provider === 'google') {
     const payload = {
