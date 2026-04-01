@@ -75,8 +75,12 @@ export async function oauthCallbackController(req, res, next) {
     }
 
     clearOauthStateCookie(res)
+    if (lookupResult.authState === 'USER_NOT_FOUND') {
+      res.redirect(`${config.frontendBaseUrl}/waiting-approval`)
+      return
+    }
+
     const safeDecisionState = [
-      'USER_NOT_FOUND',
       'AUTHENTICATED_NO_ORG',
       'LOOKUP_FAILED',
     ].includes(lookupResult.authState)
