@@ -4,3 +4,6 @@ dist/
 .env.local
 .DS_Store
 coverage/
+backend/keys/
+nauth-private-key.pem
+nauth-public-key.pem

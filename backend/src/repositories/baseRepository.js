@@ -1,7 +1,14 @@
-// Placeholder repository for upcoming relational DB queries.
+import { dbQuery, getDbPool } from '../config/database.js'
+
+export async function executeQuery(queryText, params = []) {
+  return dbQuery(queryText, params)
+}
+
 export function getRepositoryStatus() {
   return {
-    ready: false,
-    message: 'Database repository layer not connected yet.',
+    ready: Boolean(getDbPool()),
+    message: getDbPool()
+      ? 'Database repository layer is configured.'
+      : 'Database repository layer is not configured. Set DATABASE_URL.',
   }
 }

@@ -8,10 +8,13 @@
     "dev": "node --watch src/server.js",
     "start": "node src/server.js",
     "register:coordinator": "node scripts/registerWithCoordinator.js",
-    "upload-migration": "node scripts/uploadMigration.js"
+    "upload-migration": "node scripts/uploadMigration.js",
+    "generate:jwt-keys": "node scripts/generateJwtKeys.js"
   },
   "dependencies": {
     "dotenv": "^17.2.3",
-    "express": "^5.1.0"
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.20.0"
   }
 }

@@ -1,5 +1,13 @@
 import { AppError } from '../utils/AppError.js'
+import { config } from '../config/env.js'
 import { saveDirectoryLookupResult } from '../repositories/directoryLookupStore.js'
+import {
+  clearRefreshCookie,
+  createAuthenticatedSession,
+  logoutAuthenticatedSession,
+  refreshAuthenticatedSession,
+  setRefreshCookie,
+} from '../services/authSessionService.js'
 import { lookupUserViaCoordinator } from '../services/coordinator/directoryLookupService.js'
 import {
   buildProviderAuthorizationUrl,
@@ -42,24 +50,75 @@ export async function oauthCallbackController(req, res, next) {
     })
 
     const lookupResult = await lookupUserViaCoordinator(providerIdentity)
-    const serverSideRecord = saveDirectoryLookupResult({
+    saveDirectoryLookupResult({
       providerIdentity,
       directoryData: lookupResult.directoryData,
       authState: lookupResult.authState,
     })
 
+    if (lookupResult.authState === 'AUTHENTICATED_LINKED') {
+      const authSession = await createAuthenticatedSession({
+        providerIdentity,
+        directoryData: lookupResult.directoryData,
+        authDecisionState: lookupResult.authState,
+        requestMeta: {
+          ipAddress: req.ip || null,
+          userAgent: req.headers['user-agent'] || null,
+          deviceFingerprint: req.headers['x-device-fingerprint'] || null,
+        },
+      })
+
+      setRefreshCookie(res, authSession.rawRefreshToken)
+      clearOauthStateCookie(res)
+      res.redirect(`${config.frontendBaseUrl}/auth/callback?result=success`)
+      return
+    }
+
     clearOauthStateCookie(res)
+    const safeDecisionState = [
+      'USER_NOT_FOUND',
+      'AUTHENTICATED_NO_ORG',
+      'LOOKUP_FAILED',
+    ].includes(lookupResult.authState)
+      ? lookupResult.authState
+      : 'LOOKUP_FAILED'
+
+    res.redirect(
+      `${config.frontendBaseUrl}/auth/callback?result=decision&authState=${encodeURIComponent(
+        safeDecisionState,
+      )}`,
+    )
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function refreshController(req, res, next) {
+  try {
+    const refreshed = await refreshAuthenticatedSession(req.headers.cookie || '')
+    setRefreshCookie(res, refreshed.rawRefreshToken)
 
     res.status(200).json({
       success: true,
       data: {
-        providerIdentity,
-        directoryData: lookupResult.directoryData,
-        authState: lookupResult.authState,
-        nextStep: lookupResult.nextStep,
-        serverSideLookup: {
-          lookup_id: serverSideRecord.id,
-        },
+        authState: refreshed.authState,
+        accessToken: refreshed.accessToken,
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
+export async function logoutController(req, res, next) {
+  try {
+    await logoutAuthenticatedSession(req.headers.cookie || '')
+    clearRefreshCookie(res)
+
+    res.status(200).json({
+      success: true,
+      data: {
+        loggedOut: true,
       },
     })
   } catch (error) {

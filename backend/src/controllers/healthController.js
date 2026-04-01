@@ -1,5 +1,10 @@
 import { getHealthStatus } from '../services/healthService.js'
 
-export function healthController(_req, res) {
-  res.status(200).json({ success: true, data: getHealthStatus() })
+export async function healthController(_req, res, next) {
+  try {
+    const health = await getHealthStatus()
+    res.status(200).json({ success: true, data: health })
+  } catch (error) {
+    next(error)
+  }
 }

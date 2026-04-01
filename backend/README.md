@@ -7,13 +7,16 @@ Node.js + Express foundation for the nAuth microservice.
 - `npm start` - run backend in normal mode
 - `npm run register:coordinator` - run manual Coordinator Stage 1 registration
 - `npm run upload-migration` - run manual Coordinator Stage 2 migration upload
+- `npm run generate:jwt-keys` - generate local RSA key pair for JWT signing
 
 ## Implemented now
 - Minimal HTTP server bootstrapping
 - Request body parsing middleware
-- `/health` endpoint
+- `/health` endpoint with safe DB connectivity status
 - Centralized not-found and error middleware
 - Config + environment variable scaffolding
+- PostgreSQL runtime connectivity foundation via `DATABASE_URL`
+- Reusable DB client module and common repository query base
 - OAuth scaffolding endpoints:
   - `GET /auth/google/start`
   - `GET /auth/google/callback`
@@ -22,6 +25,10 @@ Node.js + Express foundation for the nAuth microservice.
 - Provider callback token exchange + profile fetch + normalization (Google/GitHub)
 - Temporary OAuth state protection (in-memory + HTTPOnly state cookie, non-final)
 - Signed Coordinator directory lookup after provider callback (no payload encryption, TLS transport)
+- Access token issuance (RS256) for `AUTHENTICATED_LINKED`
+- Refresh token stored only in HTTPOnly cookie and persisted as hash-only in DB
+- `POST /auth/refresh` for refresh token rotation + access token renewal
+- `POST /auth/logout` for refresh token/session invalidation
 - OAuth callback business decision states:
   - `AUTHENTICATED_LINKED`
   - `AUTHENTICATED_NO_ORG`
@@ -32,16 +39,32 @@ Node.js + Express foundation for the nAuth microservice.
 - Coordinator Stage 2 auto-migration on startup with `MIGRATION_UPLOADED` guard
 
 ## Intentionally NOT implemented yet
-- Final authentication/session business logic after provider callback
-- JWT issuing/signing
-- Refresh token and logout flows
-- Persisting lookup/session records to DB
-- Real database integration
+- Frontend integration for authenticated screens
+- Expanded authorization model/policies
+
+## JWT key preparation
+- Run `npm run generate:jwt-keys` from `backend/`.
+- Keys are created locally in `backend/keys/`:
+  - `jwt-private.pem`
+  - `jwt-public.pem`
+- Copy these values manually to Railway:
+  - `JWT_PRIVATE_KEY`
+  - `JWT_PUBLIC_KEY`
+- Recommended defaults in `.env.example`:
+  - `JWT_ISSUER=nauth-service`
+  - `JWT_AUDIENCE=educore-platform`
 
 ## Deployment target
 - Intended runtime: Railway
 - When configuring Railway later, use `backend/` as the service root directory.
 - Database target for this service is Supabase PostgreSQL via environment-provided connection URL(s).
+
+## Database runtime connectivity
+- Backend reads PostgreSQL runtime connection from `DATABASE_URL`.
+- A centralized DB client module (`src/config/database.js`) manages reusable pool/query access.
+- DB health probe uses `SELECT 1` through `src/services/databaseService.js`.
+- Health endpoint stays stable and reports DB status in response metadata.
+- This phase prepares runtime connectivity only; auth persistence behavior is deferred.
 
 ## Coordinator registration
 - Startup behavior:
@@ -69,5 +92,12 @@ Node.js + Express foundation for the nAuth microservice.
   - `X-Service-Name: nAuth`
   - `X-Signature: <base64 signature>`
 - Request envelope:
-  - `{ requester_name, payload, response }`
+  - `{ requester_service, payload, response }`
 - No user/org data is stored in cookies; server-side structure is prepared only.
+
+## Auth token and session policy
+- Token issuance/session creation happens only when `authState === AUTHENTICATED_LINKED`.
+- Access token is returned in response body.
+- Refresh token is never returned in JSON responses.
+- Refresh token raw value is never stored in DB; only SHA-256 hash is stored.
+- Refresh token transport is HTTPOnly cookie only (`COOKIE_DOMAIN`, `COOKIE_SECURE`, `COOKIE_SAME_SITE` driven).
