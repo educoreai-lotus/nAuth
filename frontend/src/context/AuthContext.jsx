@@ -16,13 +16,16 @@ export function AuthProvider({ children }) {
     setLoading(true)
     setError(null)
 
-    const result = await refreshAccessToken()
+    try {
+      const result = await refreshAccessToken()
 
-    if (result.ok) {
-      setAccessToken(result.data?.data?.accessToken || null)
-      setAuthState(result.data?.data?.authState || null)
-      setError(null)
-    } else {
+      if (result.ok) {
+        setAccessToken(result.data?.data?.accessToken || null)
+        setAuthState(result.data?.data?.authState || null)
+        setError(null)
+        return true
+      }
+
       setAccessToken(null)
       setAuthState(null)
       if (isExpectedUnauthenticated(result)) {
@@ -30,10 +33,15 @@ export function AuthProvider({ children }) {
       } else {
         setError(result.data?.error?.message || 'Unable to restore auth session.')
       }
+      return false
+    } catch {
+      setAccessToken(null)
+      setAuthState(null)
+      setError(null)
+      return false
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
-    return result.ok
   }, [isExpectedUnauthenticated])
 
   const setDecisionState = useCallback((stateCode) => {
