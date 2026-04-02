@@ -2,11 +2,15 @@ export const REFRESH_COOKIE_NAME = 'nauth_refresh_token'
 
 function parseCookieSecureFlag() {
   const value = process.env.COOKIE_SECURE
+  if (!value) {
+    return process.env.NODE_ENV === 'production'
+  }
   return value === 'true' || value === '1'
 }
 
 function parseCookieSameSite() {
-  const value = (process.env.COOKIE_SAME_SITE || 'lax').toLowerCase()
+  const raw = process.env.COOKIE_SAME_SITE
+  const value = (raw || (process.env.NODE_ENV === 'production' ? 'none' : 'lax')).toLowerCase()
   if (['lax', 'strict', 'none'].includes(value)) {
     return value
   }

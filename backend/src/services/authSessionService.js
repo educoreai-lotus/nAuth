@@ -27,8 +27,8 @@ function buildAccessClaims({ authUserId, provider, directoryData }) {
   return {
     sub: authUserId,
     provider,
-    directory_user_id: directoryData.user_id || '',
-    organization_id: directoryData.organization_id || '',
+    directoryUserId: directoryData.user_id || '',
+    organizationId: directoryData.organization_id || '',
   }
 }
 
