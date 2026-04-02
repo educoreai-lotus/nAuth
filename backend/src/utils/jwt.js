@@ -43,3 +43,13 @@ export function verifyAccessToken(token) {
     audience,
   })
 }
+
+export function verifyAccessTokenIgnoreExpiration(token) {
+  const { publicKey, issuer, audience } = getJwtConfig()
+  return jwt.verify(token, publicKey, {
+    algorithms: ['RS256'],
+    issuer,
+    audience,
+    ignoreExpiration: true,
+  })
+}

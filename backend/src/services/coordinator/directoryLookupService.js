@@ -1,5 +1,9 @@
 import { AppError } from '../../utils/AppError.js'
 import { createSignedCoordinatorHeaders } from '../../utils/signing.js'
+import {
+  handleCoordinatorTokenValidationRequest,
+  isNauthValidationAction,
+} from './tokenValidationService.js'
 
 function getCoordinatorApiUrl() {
   const url = process.env.COORDINATOR_API_URL
@@ -86,6 +90,16 @@ function decideAuthState(directoryData) {
     authState: 'LOOKUP_FAILED',
     nextStep: 'Retry lookup or inspect Coordinator/Directory response.',
   }
+}
+
+export async function handleCoordinatorActionPayload(requestBody = {}) {
+  const payload = requestBody?.payload || {}
+
+  if (isNauthValidationAction(payload)) {
+    return handleCoordinatorTokenValidationRequest(requestBody)
+  }
+
+  throw new AppError('Unsupported coordinator action for nAuth.', 400)
 }
 
 export async function lookupUserViaCoordinator(providerIdentity) {

@@ -172,3 +172,39 @@ export async function invalidateSession(sessionId, reason = 'logout') {
     [sessionId, reason],
   )
 }
+
+export async function findLatestActiveSessionContextByAuthUserId(authUserId) {
+  const result = await executeQuery(
+    `SELECT
+      s.id AS session_id,
+      s.auth_user_id,
+      s.status AS session_status,
+      s.expires_at AS session_expires_at,
+      pi.provider,
+      pi.profile_metadata
+    FROM sessions s
+    LEFT JOIN provider_identities pi ON pi.auth_user_id = s.auth_user_id
+    WHERE s.auth_user_id = $1
+      AND s.status = 'active'
+      AND s.expires_at > NOW()
+    ORDER BY s.updated_at DESC, pi.updated_at DESC NULLS LAST
+    LIMIT 1`,
+    [authUserId],
+  )
+
+  return result.rows[0] || null
+}
+
+export async function hasActiveRefreshTokenForSession(sessionId) {
+  const result = await executeQuery(
+    `SELECT 1
+     FROM refresh_tokens
+     WHERE session_id = $1
+       AND status = 'active'
+       AND expires_at > NOW()
+     LIMIT 1`,
+    [sessionId],
+  )
+
+  return result.rowCount > 0
+}
