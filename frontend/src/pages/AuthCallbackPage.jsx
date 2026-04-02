@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { refreshAccessToken } from '../services/authApi'
 
 const DIRECTORY_FRONTEND_URL = 'https://directory-psi-mocha.vercel.app/'
 
@@ -15,9 +16,14 @@ function AuthCallbackPage() {
       const result = params.get('result')
 
       if (result === 'success') {
-        const restored = await refresh()
-        if (restored) {
-          window.location.href = DIRECTORY_FRONTEND_URL
+        const refreshResult = await refreshAccessToken()
+        if (refreshResult.ok) {
+          const accessToken = refreshResult.data?.data?.accessToken
+          if (accessToken) {
+            window.location.href = `${DIRECTORY_FRONTEND_URL}#access_token=${encodeURIComponent(accessToken)}`
+          } else {
+            navigate('/login', { replace: true })
+          }
         } else {
           navigate('/login', { replace: true })
         }
