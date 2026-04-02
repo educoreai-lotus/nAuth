@@ -16,7 +16,7 @@ export const config = {
   port: Number(process.env.PORT),
   backendBaseUrl: process.env.BACKEND_BASE_URL,
   frontendBaseUrl: process.env.FRONTEND_BASE_URL,
-  corsAllowedOrigins: (process.env.CORS_ALLOWED_ORIGINS || process.env.FRONTEND_BASE_URL || '')
+  corsAllowedOrigins: (process.env.CORS_ALLOWED_ORIGINS || '')
     .split(',')
     .map((origin) => origin.trim())
     .filter(Boolean),
