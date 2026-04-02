@@ -10,6 +10,7 @@ import {
 const router = Router()
 
 router.get('/health', healthController)
+// Coordinator sends token validation requests to this fixed entrypoint.
 router.post('/request', async (req, res, next) => {
   try {
     const body = req.body || {}
