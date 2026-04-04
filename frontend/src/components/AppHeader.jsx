@@ -1,4 +1,6 @@
 import { useTheme } from '../context/ThemeContext'
+import logoDark from '../assets/logo-dark.jpg'
+import logoLight from '../assets/logo-light.jpg'
 
 function MoonIcon() {
   return (
@@ -53,17 +55,23 @@ function AppHeader() {
         }`}
       >
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <div
-            className={`min-w-0 transition-all duration-300 ease-in-out ${
-              isDay ? 'text-gray-700' : 'text-gray-300'
-            }`}
-          >
-            <h1 className="text-3xl font-semibold tracking-tight">nAuth Frontend</h1>
-            <p className="mt-2 text-sm">
-              Starter UI shell for upcoming authentication screens.
-            </p>
+          <div className="ml-2 flex min-w-0 flex-1 items-center gap-4">
+            <img
+              src={isDay ? logoLight : logoDark}
+              alt=""
+              className="h-8 w-auto shrink-0 object-contain"
+            />
+            <div
+              className={`min-w-0 transition-all duration-300 ease-in-out ${
+                isDay ? 'text-gray-700' : 'text-gray-300'
+              }`}
+            >
+              <h1 className="text-3xl font-semibold tracking-tight">nAuth Frontend</h1>
+              <p className="mt-2 text-sm">
+                Starter UI shell for upcoming authentication screens.
+              </p>
+            </div>
           </div>
-          <div className="min-w-0 flex-1" aria-hidden />
           <button
             type="button"
             onClick={toggleTheme}

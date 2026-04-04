@@ -1,6 +1,8 @@
 import { getGithubLoginUrl, getGoogleLoginUrl } from '../services/authApi'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../context/ThemeContext'
+import logoDark from '../assets/logo-dark.jpg'
+import logoLight from '../assets/logo-light.jpg'
 
 function MoonIcon() {
   return (
@@ -56,7 +58,11 @@ function LoginPage() {
         }`}
       >
         <div className="container mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
-          <div className="min-w-0 flex-1" aria-hidden />
+          <img
+            src={isDay ? logoLight : logoDark}
+            alt=""
+            className="ml-2 h-8 w-auto object-contain"
+          />
           <button
             type="button"
             onClick={toggleTheme}
