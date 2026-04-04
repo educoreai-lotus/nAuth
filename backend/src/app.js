@@ -42,6 +42,15 @@ app.use((req, res, next) => {
   next()
 })
 
+// Coordinator proxy may send duplicated Content-Type; express.json() rejects it and leaves req.body unset.
+app.use((req, res, next) => {
+  const contentType = req.headers['content-type']
+  if (contentType === 'application/json, application/json') {
+    req.headers['content-type'] = 'application/json'
+  }
+  next()
+})
+
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
