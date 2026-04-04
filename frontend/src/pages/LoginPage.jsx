@@ -61,8 +61,8 @@ function LoginPage() {
       <header
         className={`fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out ${
           isDay
-            ? 'border-neutral-200 bg-white/95'
-            : 'border-neutral-700 bg-neutral-900/90'
+            ? 'border-neutral-200 bg-white'
+            : 'border-neutral-700 bg-neutral-900'
         }`}
       >
         <div className="container mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
