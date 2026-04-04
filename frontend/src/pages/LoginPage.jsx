@@ -61,7 +61,7 @@ function LoginPage() {
           <img
             src={isDay ? logoLight : logoDark}
             alt=""
-            className="ml-2 h-8 w-auto object-contain"
+            className="ml-2 h-20 w-auto object-contain"
           />
           <button
             type="button"
@@ -78,7 +78,7 @@ function LoginPage() {
         </div>
       </header>
 
-      <div className="h-[4.5rem]" aria-hidden />
+      <div className="h-28" aria-hidden />
 
       <main className="container mx-auto max-w-3xl px-6 py-14 sm:py-16">
         <div className="max-w-2xl">
