@@ -59,7 +59,7 @@ function AppHeader() {
             <img
               src={isDay ? logoLight : logoDark}
               alt=""
-              className="h-20 w-auto shrink-0 object-contain"
+              className="h-16 w-auto shrink-0 object-contain"
             />
             <div
               className={`min-w-0 transition-all duration-300 ease-in-out ${
@@ -86,7 +86,7 @@ function AppHeader() {
           </button>
         </div>
       </header>
-      <div className="h-28" aria-hidden />
+      <div className="h-24" aria-hidden />
     </>
   )
 }
