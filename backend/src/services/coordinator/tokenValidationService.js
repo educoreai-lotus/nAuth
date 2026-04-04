@@ -4,7 +4,7 @@ import {
   hasActiveRefreshTokenForSession,
 } from '../../repositories/authSessionRepository.js'
 
-const VALIDATION_ACTION =
+export const VALIDATION_ACTION =
   'Route this request to nAuth service only for access token validation and session continuity decision.'
 
 function buildInvalidResponse(reason = 'TOKEN_VALIDATION_FAILED') {

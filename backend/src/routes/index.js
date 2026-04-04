@@ -5,6 +5,7 @@ import { AppError } from '../utils/AppError.js'
 import {
   handleCoordinatorTokenValidationRequest,
   isNauthValidationAction,
+  VALIDATION_ACTION,
 } from '../services/coordinator/tokenValidationService.js'
 
 const router = Router()
@@ -16,7 +17,27 @@ router.post('/request', async (req, res, next) => {
     const body = req.body || {}
     const payload = body.payload || {}
 
-    if (!isNauthValidationAction(payload)) {
+    const receivedAction = payload?.action
+    const expectedAction = VALIDATION_ACTION
+    const actionMatches = isNauthValidationAction(payload)
+    console.log('[nAuth][Coordinator /request][TEMP DEBUG] payload.action (raw):', receivedAction)
+    console.log('[nAuth][Coordinator /request][TEMP DEBUG] expected VALIDATION_ACTION (raw):', expectedAction)
+    console.log('[nAuth][Coordinator /request][TEMP DEBUG] equality === :', actionMatches)
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] lengths:',
+      receivedAction != null ? String(receivedAction).length : 'n/a',
+      expectedAction.length,
+    )
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] JSON.stringify(receivedAction):',
+      JSON.stringify(receivedAction),
+    )
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] JSON.stringify(expectedAction):',
+      JSON.stringify(expectedAction),
+    )
+
+    if (!actionMatches) {
       throw new AppError('Unsupported coordinator action for nAuth.', 400)
     }
 
