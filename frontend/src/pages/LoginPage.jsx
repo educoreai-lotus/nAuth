@@ -54,15 +54,15 @@ function LoginPage() {
 
   return (
     <div
-      className={`min-h-screen transition-all duration-300 ease-in-out ${
+      className={`min-h-screen antialiased transition-all duration-300 ease-in-out ${
         isDay ? 'bg-neutral-50' : 'bg-neutral-900'
       }`}
     >
       <header
-        className={`fixed top-0 right-0 left-0 z-50 border-b transition-all duration-300 ease-in-out ${
+        className={`fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out ${
           isDay
-            ? 'border-neutral-200 bg-white'
-            : 'border-neutral-700 bg-neutral-900'
+            ? 'border-neutral-200 bg-white/95'
+            : 'border-neutral-700 bg-neutral-900/90'
         }`}
       >
         <div className="container mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
@@ -86,7 +86,7 @@ function LoginPage() {
 
       <main className="container mx-auto max-w-3xl px-6 py-12">
         <h1
-          className={`text-4xl font-bold tracking-tight transition-all duration-300 ease-in-out ${
+          className={`text-4xl font-bold tracking-tight transition-all duration-300 ease-in-out sm:text-5xl ${
             isDay ? 'text-neutral-900' : 'text-neutral-50'
           }`}
         >
@@ -94,7 +94,7 @@ function LoginPage() {
         </h1>
         <p
           className={`mt-3 text-sm leading-relaxed transition-all duration-300 ease-in-out ${
-            isDay ? 'text-neutral-600' : 'text-neutral-400'
+            isDay ? 'text-neutral-500' : 'text-neutral-300'
           }`}
         >
           Login starts on the backend. The frontend never stores refresh tokens.
@@ -104,12 +104,12 @@ function LoginPage() {
           className={`mt-8 space-y-3 rounded-lg border p-6 shadow-lg transition-all duration-300 ease-in-out ${
             isDay
               ? 'border-neutral-200 bg-white'
-              : 'border-neutral-700 bg-neutral-800'
+              : 'border-neutral-700 bg-neutral-800 shadow-black/40'
           }`}
         >
           <button
             type="button"
-            className="w-full rounded-md bg-primary-700 px-4 py-2 font-medium text-white transition-all duration-300 ease-in-out hover:bg-primary-800 active:bg-primary-900"
+            className="w-full rounded-md bg-primary-700 px-4 py-2 font-semibold text-white shadow-sm transition-all duration-300 ease-in-out hover:bg-primary-800 hover:shadow-md active:bg-primary-900 active:shadow-sm"
             onClick={() => {
               window.location.href = getGoogleLoginUrl()
             }}
@@ -118,10 +118,10 @@ function LoginPage() {
           </button>
           <button
             type="button"
-            className={`w-full rounded-md border px-4 py-2 font-medium transition-all duration-300 ease-in-out ${
+            className={`w-full rounded-md border px-4 py-2 font-semibold transition-all duration-300 ease-in-out ${
               isDay
-                ? 'border-neutral-300 bg-neutral-100 text-neutral-900 hover:bg-neutral-200'
-                : 'border-neutral-600 bg-neutral-800 text-neutral-50 hover:bg-neutral-700'
+                ? 'border-neutral-300 bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300'
+                : 'border-neutral-600 bg-neutral-800 text-neutral-50 hover:bg-neutral-700 active:bg-neutral-600'
             }`}
             onClick={() => {
               window.location.href = getGithubLoginUrl()
@@ -136,7 +136,7 @@ function LoginPage() {
             className={`mt-4 rounded-md border px-4 py-2 text-sm transition-all duration-300 ease-in-out ${
               isDay
                 ? 'border-neutral-200 bg-rose-50 text-rose-800'
-                : 'border-neutral-700 bg-rose-950/40 text-rose-200'
+                : 'border-neutral-600 bg-rose-950/50 text-rose-100'
             }`}
           >
             {error}

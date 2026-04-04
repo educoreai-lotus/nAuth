@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* Reference-aligned primary scale (maps to strong blue contrast). */
-  --color-primary-700: #1d4ed8;
-  --color-primary-800: #1e40af;
-  --color-primary-900: #1e3a8a;
+  /* Reference-aligned primary scale (strong indigo contrast on neutrals). */
+  --color-primary-700: #4338ca;
+  --color-primary-800: #3730a3;
+  --color-primary-900: #312e81;
 }
 
 :root {
