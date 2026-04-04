@@ -74,24 +74,26 @@ function LoginPage() {
 
       <div className="h-[4.5rem]" aria-hidden />
 
-      <main className="container mx-auto max-w-3xl px-6 py-12">
-        <h1
-          className={`text-4xl font-bold tracking-tight transition-all duration-300 ease-in-out sm:text-5xl ${
-            isDay ? 'text-neutral-900' : 'text-neutral-50'
-          }`}
-        >
-          Sign in to nAuth
-        </h1>
-        <p
-          className={`mt-3 text-sm leading-relaxed transition-all duration-300 ease-in-out ${
-            isDay ? 'text-neutral-500' : 'text-neutral-300'
-          }`}
-        >
-          Login starts on the backend. The frontend never stores refresh tokens.
-        </p>
+      <main className="container mx-auto max-w-3xl px-6 py-14 sm:py-16">
+        <div className="max-w-2xl">
+          <h1
+            className={`text-3xl font-bold leading-tight tracking-tight transition-all duration-300 ease-in-out sm:text-4xl ${
+              isDay ? 'text-neutral-900' : 'text-neutral-50'
+            }`}
+          >
+            Welcome to EDUCORE-AI Platform
+          </h1>
+          <p
+            className={`mt-5 max-w-xl text-base leading-relaxed transition-all duration-300 ease-in-out ${
+              isDay ? 'text-neutral-500' : 'text-neutral-300'
+            }`}
+          >
+            Access your intelligent learning environment and continue your personalized learning journey.
+          </p>
+        </div>
 
         <section
-          className={`mt-8 space-y-3 rounded-lg border p-6 shadow-lg transition-all duration-300 ease-in-out ${
+          className={`mt-10 space-y-3 rounded-lg border p-6 shadow-lg transition-all duration-300 ease-in-out ${
             isDay
               ? 'border-neutral-200 bg-[#ffffff]'
               : 'border-neutral-700 bg-[#1e293b]'
