@@ -1,7 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* Team can extend design tokens here later. */
+  /* Reference-aligned primary scale (maps to strong blue contrast). */
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
 }
 
 :root {
