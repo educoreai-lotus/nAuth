@@ -14,6 +14,36 @@ router.get('/health', healthController)
 // Coordinator sends token validation requests to this fixed entrypoint.
 router.post('/request', async (req, res, next) => {
   try {
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] content-type:',
+      req.headers['content-type'],
+    )
+    console.log('[nAuth][Coordinator /request][TEMP DEBUG] typeof req.body:', typeof req.body)
+    console.log('[nAuth][Coordinator /request][TEMP DEBUG] req.body:', req.body)
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] JSON.stringify(req.body):',
+      JSON.stringify(req.body),
+    )
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] Object.keys(req.body || {}):',
+      Object.keys(req.body || {}),
+    )
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] req.body.requester_service:',
+      req.body?.requester_service,
+    )
+    console.log('[nAuth][Coordinator /request][TEMP DEBUG] req.body.payload:', req.body?.payload)
+    console.log(
+      '[nAuth][Coordinator /request][TEMP DEBUG] typeof req.body.payload:',
+      typeof req.body?.payload,
+    )
+    if (req.body?.payload != null && typeof req.body.payload === 'object') {
+      console.log(
+        '[nAuth][Coordinator /request][TEMP DEBUG] Object.keys(req.body.payload):',
+        Object.keys(req.body.payload),
+      )
+    }
+
     const body = req.body || {}
     const payload = body.payload || {}
 
