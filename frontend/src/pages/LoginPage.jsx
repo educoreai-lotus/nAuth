@@ -55,12 +55,14 @@ function LoginPage() {
   return (
     <div
       className={`min-h-screen transition-all duration-300 ease-in-out ${
-        isDay ? 'bg-gray-50' : 'bg-[#0b1020]'
+        isDay ? 'bg-gray-50' : 'bg-slate-950'
       }`}
     >
       <header
         className={`fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out ${
-          isDay ? 'border-gray-200 bg-white/95 text-gray-700' : 'border-gray-600 bg-slate-900/95 text-gray-300'
+          isDay
+            ? 'border-gray-200 bg-white/95 text-gray-700'
+            : 'border-gray-600 bg-slate-900/95 text-gray-300'
         }`}
       >
         <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
@@ -92,17 +94,17 @@ function LoginPage() {
         </h1>
         <p
           className={`mt-3 text-sm leading-relaxed transition-all duration-300 ease-in-out ${
-            isDay ? 'text-gray-600' : 'text-gray-300'
+            isDay ? 'text-gray-600' : 'text-gray-400'
           }`}
         >
           Login starts on the backend. The frontend never stores refresh tokens.
         </p>
 
         <section
-          className={`mt-8 space-y-3 rounded-lg border p-6 transition-all duration-300 ease-in-out ${
+          className={`mt-8 space-y-3 rounded-lg border p-6 shadow-sm transition-all duration-300 ease-in-out ${
             isDay
-              ? 'border-gray-200 bg-white/90 shadow-sm'
-              : 'border-slate-700 bg-slate-900/50'
+              ? 'border-gray-200 bg-white'
+              : 'border-gray-600 bg-slate-900/80'
           }`}
         >
           <button
@@ -110,7 +112,7 @@ function LoginPage() {
             className={`w-full rounded-md px-4 py-2 font-medium transition-all duration-300 ease-in-out ${
               isDay
                 ? 'bg-gray-900 text-white hover:bg-gray-800'
-                : 'bg-slate-100 text-slate-950 hover:bg-white'
+                : 'border border-gray-600 bg-slate-100 text-slate-950 hover:bg-white'
             }`}
             onClick={() => {
               window.location.href = getGoogleLoginUrl()
@@ -120,10 +122,10 @@ function LoginPage() {
           </button>
           <button
             type="button"
-            className={`w-full rounded-md px-4 py-2 font-medium transition-all duration-300 ease-in-out ${
+            className={`w-full rounded-md border px-4 py-2 font-medium transition-all duration-300 ease-in-out ${
               isDay
-                ? 'border border-gray-300 bg-gray-100 text-gray-800 hover:bg-gray-200'
-                : 'bg-slate-700 text-white hover:bg-slate-600'
+                ? 'border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100'
+                : 'border-gray-600 bg-slate-800 text-gray-200 hover:bg-slate-700'
             }`}
             onClick={() => {
               window.location.href = getGithubLoginUrl()
