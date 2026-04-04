@@ -6,7 +6,7 @@ function Layout({ children }) {
   return (
     <div
       className={`min-h-screen transition-all duration-300 ease-in-out ${
-        isDay ? 'bg-neutral-50' : 'bg-neutral-800'
+        isDay ? 'bg-[#f8fafc]' : 'bg-[#1e293b]'
       }`}
     >
       {children}

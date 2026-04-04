@@ -20,10 +20,12 @@
   }
 
   body.theme-app-light {
-    @apply bg-neutral-50 text-neutral-900;
+    background-color: #f8fafc;
+    @apply text-neutral-900;
   }
 
   body.theme-app-dark {
-    @apply bg-neutral-900 text-neutral-50;
+    background-color: #0f172a;
+    @apply text-neutral-50;
   }
 }

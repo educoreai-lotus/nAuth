@@ -51,8 +51,8 @@ function LoginPage() {
       <header
         className={`fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out ${
           isDay
-            ? 'border-neutral-200 bg-white'
-            : 'border-neutral-700 bg-neutral-900'
+            ? 'border-neutral-200 bg-[#ffffff]'
+            : 'border-neutral-700 bg-[#0f172a]'
         }`}
       >
         <div className="container mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
@@ -93,8 +93,8 @@ function LoginPage() {
         <section
           className={`mt-8 space-y-3 rounded-lg border p-6 shadow-lg transition-all duration-300 ease-in-out ${
             isDay
-              ? 'border-neutral-200 bg-white'
-              : 'border-neutral-700 bg-neutral-800 shadow-black/40'
+              ? 'border-neutral-200 bg-[#ffffff]'
+              : 'border-neutral-700 bg-[#1e293b]'
           }`}
         >
           <button
