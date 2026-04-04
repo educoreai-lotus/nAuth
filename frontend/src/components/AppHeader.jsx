@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useTheme } from '../context/ThemeContext'
 
 function MoonIcon() {
   return (
@@ -41,13 +41,7 @@ function SunIcon() {
 }
 
 function AppHeader() {
-  const [theme, setTheme] = useState('night-mode')
-
-  const isDay = theme === 'day-mode'
-
-  const toggleTheme = () => {
-    setTheme(isDay ? 'night-mode' : 'day-mode')
-  }
+  const { isDay, toggleTheme } = useTheme()
 
   return (
     <>

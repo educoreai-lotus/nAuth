@@ -1,6 +1,6 @@
-import { useState } from 'react'
 import { getGithubLoginUrl, getGoogleLoginUrl } from '../services/authApi'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../context/ThemeContext'
 
 function MoonIcon() {
   return (
@@ -43,21 +43,11 @@ function SunIcon() {
 }
 
 function LoginPage() {
-  const [theme, setTheme] = useState('night-mode')
   const { error } = useAuth()
-
-  const isDay = theme === 'day-mode'
-
-  const toggleTheme = () => {
-    setTheme(isDay ? 'night-mode' : 'day-mode')
-  }
+  const { isDay, toggleTheme } = useTheme()
 
   return (
-    <div
-      className={`min-h-screen antialiased transition-all duration-300 ease-in-out ${
-        isDay ? 'bg-neutral-50' : 'bg-neutral-900'
-      }`}
-    >
+    <div className="min-h-screen antialiased transition-all duration-300 ease-in-out">
       <header
         className={`fixed top-0 right-0 left-0 z-50 border-b shadow-lg backdrop-blur-md transition-all duration-300 ease-in-out ${
           isDay
