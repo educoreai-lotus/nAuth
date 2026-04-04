@@ -109,7 +109,7 @@ function LoginPage() {
         >
           <button
             type="button"
-            className="w-full rounded-md bg-primary-700 px-4 py-2 font-semibold text-white shadow-sm transition-all duration-300 ease-in-out hover:bg-primary-800 hover:shadow-md active:bg-primary-900 active:shadow-sm"
+            className="w-full rounded-md bg-primary-700 px-4 py-2 font-medium text-white transition-all duration-300 ease-in-out hover:bg-primary-800 active:bg-primary-900"
             onClick={() => {
               window.location.href = getGoogleLoginUrl()
             }}
@@ -118,11 +118,7 @@ function LoginPage() {
           </button>
           <button
             type="button"
-            className={`w-full rounded-md border px-4 py-2 font-semibold transition-all duration-300 ease-in-out ${
-              isDay
-                ? 'border-neutral-300 bg-neutral-100 text-neutral-900 hover:bg-neutral-200 active:bg-neutral-300'
-                : 'border-neutral-600 bg-neutral-800 text-neutral-50 hover:bg-neutral-700 active:bg-neutral-600'
-            }`}
+            className="w-full rounded-md bg-primary-700 px-4 py-2 font-medium text-white transition-all duration-300 ease-in-out hover:bg-primary-800 active:bg-primary-900"
             onClick={() => {
               window.location.href = getGithubLoginUrl()
             }}
