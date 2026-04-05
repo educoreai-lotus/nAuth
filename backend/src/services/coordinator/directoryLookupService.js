@@ -65,6 +65,13 @@ function validateDirectoryResponse(directoryData) {
 }
 
 function decideAuthState(directoryData) {
+  if (directoryData.user_exists === true && directoryData.is_system_admin === true) {
+    return {
+      authState: 'AUTHENTICATED_LINKED',
+      nextStep: 'System admin authenticated successfully.',
+    }
+  }
+
   if (directoryData.user_exists === true && directoryData.organization_id) {
     return {
       authState: 'AUTHENTICATED_LINKED',
