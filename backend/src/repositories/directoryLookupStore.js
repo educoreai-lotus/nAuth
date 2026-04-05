@@ -16,6 +16,12 @@ export function saveDirectoryLookupResult({ providerIdentity, directoryData, aut
     full_name: directoryData.full_name || '',
     organization_id: directoryData.organization_id || '',
     organization_name: directoryData.organization_name || '',
+    primary_role:
+      directoryData.primary_role != null && directoryData.primary_role !== ''
+        ? String(directoryData.primary_role)
+        : '',
+    roles: Array.isArray(directoryData.roles) ? directoryData.roles : [],
+    is_system_admin: Boolean(directoryData.is_system_admin),
     created_at: new Date().toISOString(),
   }
 

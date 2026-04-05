@@ -113,6 +113,9 @@ export async function lookupUserViaCoordinator(providerIdentity) {
       full_name: '',
       organization_id: '',
       organization_name: '',
+      primary_role: '',
+      roles: [],
+      is_system_admin: false,
     },
   }
 
@@ -161,6 +164,12 @@ export async function lookupUserViaCoordinator(providerIdentity) {
         error: 'Invalid directory response structure',
       }
     }
+
+    console.log('[nAuth][DirectoryLookup] Optional auth context present:', {
+      primary_role: Boolean(directoryData.primary_role),
+      roles_count: Array.isArray(directoryData.roles) ? directoryData.roles.length : 0,
+      is_system_admin: Boolean(directoryData.is_system_admin),
+    })
 
     const decision = decideAuthState(directoryData)
     return {

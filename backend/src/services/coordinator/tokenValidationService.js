@@ -3,6 +3,7 @@ import {
   findLatestActiveSessionContextByAuthUserId,
   hasActiveRefreshTokenForSession,
 } from '../../repositories/authSessionRepository.js'
+import { buildAccessClaims } from '../authSessionService.js'
 
 export const VALIDATION_ACTION =
   'Route this request to nAuth service only for access token validation and session continuity decision.'
@@ -18,7 +19,14 @@ function buildInvalidResponse(reason = 'TOKEN_VALIDATION_FAILED') {
   }
 }
 
-function buildValidResponse(authState, directoryUserId, organizationId, newAccessToken = '') {
+function buildValidResponse(
+  authState,
+  directoryUserId,
+  organizationId,
+  newAccessToken = '',
+  primaryRole = '',
+  isSystemAdmin = false,
+) {
   return {
     valid: true,
     reason: '',
@@ -26,7 +34,24 @@ function buildValidResponse(authState, directoryUserId, organizationId, newAcces
     directory_user_id: directoryUserId || '',
     organization_id: organizationId || '',
     new_access_token: newAccessToken,
+    primary_role: primaryRole || '',
+    is_system_admin: Boolean(isSystemAdmin),
   }
+}
+
+function mergePrimaryRole(verified, sessionDirectory) {
+  const jwtVal = verified?.primaryRole
+  if (jwtVal != null && jwtVal !== '') {
+    return String(jwtVal)
+  }
+  return sessionDirectory.primaryRole || ''
+}
+
+function mergeIsSystemAdmin(verified, sessionDirectory) {
+  if (Object.prototype.hasOwnProperty.call(verified, 'isSystemAdmin')) {
+    return Boolean(verified.isSystemAdmin)
+  }
+  return Boolean(sessionDirectory.isSystemAdmin)
 }
 
 function readDirectoryContextFromSession(sessionContext) {
@@ -34,6 +59,11 @@ function readDirectoryContextFromSession(sessionContext) {
   return {
     directoryUserId: profileMetadata.directory_user_id || '',
     organizationId: profileMetadata.organization_id || '',
+    primaryRole:
+      profileMetadata.primary_role != null && profileMetadata.primary_role !== ''
+        ? String(profileMetadata.primary_role)
+        : '',
+    isSystemAdmin: Boolean(profileMetadata.is_system_admin),
   }
 }
 
@@ -85,12 +115,26 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
     const sessionDirectory = readDirectoryContextFromSession(sessionContext)
     const directoryUserId = verified.directoryUserId || sessionDirectory.directoryUserId
     const organizationId = verified.organizationId || sessionDirectory.organizationId
+    const primaryRole = mergePrimaryRole(verified, sessionDirectory)
+    const isSystemAdmin = mergeIsSystemAdmin(verified, sessionDirectory)
 
     if (!matchesOptionalPayloadContext(payload, directoryUserId, organizationId)) {
       return buildInvalidResponse('DIRECTORY_CONTEXT_MISMATCH')
     }
 
-    return buildValidResponse('ACCESS_TOKEN_VALID', directoryUserId, organizationId)
+    console.log('[nAuth][TokenValidation] Optional context (valid token):', {
+      has_primary_role: Boolean(primaryRole),
+      is_system_admin: isSystemAdmin,
+    })
+
+    return buildValidResponse(
+      'ACCESS_TOKEN_VALID',
+      directoryUserId,
+      organizationId,
+      '',
+      primaryRole,
+      isSystemAdmin,
+    )
   } catch (error) {
     if (error?.name !== 'TokenExpiredError') {
       return buildInvalidResponse(error?.message || 'ACCESS_TOKEN_INVALID')
@@ -106,16 +150,29 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
       const sessionDirectory = readDirectoryContextFromSession(sessionContext)
       const directoryUserId = expiredClaims.directoryUserId || sessionDirectory.directoryUserId
       const organizationId = expiredClaims.organizationId || sessionDirectory.organizationId
+      const primaryRole = mergePrimaryRole(expiredClaims, sessionDirectory)
+      const isSystemAdmin = mergeIsSystemAdmin(expiredClaims, sessionDirectory)
 
       if (!matchesOptionalPayloadContext(payload, directoryUserId, organizationId)) {
         return buildInvalidResponse('DIRECTORY_CONTEXT_MISMATCH')
       }
 
-      const refreshedToken = signAccessToken({
-        sub: expiredClaims.sub,
-        provider: expiredClaims.provider || sessionContext.provider || 'unknown',
-        directoryUserId,
-        organizationId,
+      const refreshedToken = signAccessToken(
+        buildAccessClaims({
+          authUserId: expiredClaims.sub,
+          provider: expiredClaims.provider || sessionContext.provider || 'unknown',
+          directoryData: {
+            user_id: directoryUserId,
+            organization_id: organizationId,
+            primary_role: primaryRole,
+            is_system_admin: isSystemAdmin,
+          },
+        }),
+      )
+
+      console.log('[nAuth][TokenValidation] Optional context (refreshed token):', {
+        has_primary_role: Boolean(primaryRole),
+        is_system_admin: isSystemAdmin,
       })
 
       return buildValidResponse(
@@ -123,6 +180,8 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
         directoryUserId,
         organizationId,
         refreshedToken,
+        primaryRole,
+        isSystemAdmin,
       )
     } catch (refreshError) {
       return buildInvalidResponse(refreshError?.message || 'ACCESS_TOKEN_INVALID')

@@ -23,12 +23,17 @@ function getRefreshExpiryDate() {
   return new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 }
 
-function buildAccessClaims({ authUserId, provider, directoryData }) {
+export function buildAccessClaims({ authUserId, provider, directoryData }) {
   return {
     sub: authUserId,
     provider,
     directoryUserId: directoryData.user_id || '',
     organizationId: directoryData.organization_id || '',
+    primaryRole:
+      directoryData.primary_role != null && directoryData.primary_role !== ''
+        ? String(directoryData.primary_role)
+        : '',
+    isSystemAdmin: Boolean(directoryData.is_system_admin),
   }
 }
 
@@ -82,11 +87,18 @@ export async function createAuthenticatedSession({
 }
 
 function getDirectoryDataFromProfileMetadata(profileMetadata) {
+  const roles = Array.isArray(profileMetadata?.roles) ? profileMetadata.roles : []
   return {
     user_id: profileMetadata?.directory_user_id || '',
     full_name: profileMetadata?.full_name || '',
     organization_id: profileMetadata?.organization_id || '',
     organization_name: profileMetadata?.organization_name || '',
+    primary_role:
+      profileMetadata?.primary_role != null && profileMetadata.primary_role !== ''
+        ? String(profileMetadata.primary_role)
+        : '',
+    roles,
+    is_system_admin: Boolean(profileMetadata?.is_system_admin),
   }
 }
 
@@ -130,6 +142,11 @@ export async function refreshAuthenticatedSession(cookieHeader) {
   await setRefreshTokenReplacement(context.refresh_token_id, newTokenRow.id)
 
   const directoryData = getDirectoryDataFromProfileMetadata(context.profile_metadata || {})
+  console.log('[nAuth][Refresh] Optional auth context from metadata:', {
+    has_primary_role: Boolean(directoryData.primary_role),
+    roles_count: directoryData.roles.length,
+    is_system_admin: directoryData.is_system_admin,
+  })
   const accessToken = signAccessToken(
     buildAccessClaims({
       authUserId: context.auth_user_id,

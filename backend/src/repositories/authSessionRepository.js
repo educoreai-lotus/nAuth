@@ -22,6 +22,13 @@ export async function createAuthUser() {
   return result.rows[0]
 }
 
+function normalizeRolesForMetadata(directoryData) {
+  if (Array.isArray(directoryData.roles)) {
+    return directoryData.roles
+  }
+  return []
+}
+
 export async function upsertProviderIdentity(authUserId, providerIdentity, directoryData) {
   const profileMetadata = {
     ...(providerIdentity.provider_metadata || {}),
@@ -29,6 +36,12 @@ export async function upsertProviderIdentity(authUserId, providerIdentity, direc
     full_name: directoryData.full_name || '',
     organization_id: directoryData.organization_id || '',
     organization_name: directoryData.organization_name || '',
+    primary_role:
+      directoryData.primary_role != null && directoryData.primary_role !== ''
+        ? String(directoryData.primary_role)
+        : '',
+    roles: normalizeRolesForMetadata(directoryData),
+    is_system_admin: Boolean(directoryData.is_system_admin),
   }
 
   const result = await executeQuery(
