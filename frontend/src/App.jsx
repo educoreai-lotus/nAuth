@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect, useRef } from 'react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
@@ -6,9 +7,31 @@ import DashboardPage from './pages/DashboardPage'
 import DecisionStatePage from './pages/DecisionStatePage'
 import AuthCallbackPage from './pages/AuthCallbackPage'
 import WaitingApprovalPage from './pages/WaitingApprovalPage'
+import { DIRECTORY_FRONTEND_URL } from './constants/directory'
 
 function App() {
-  const { loading, isAuthenticated, authState } = useAuth()
+  const { loading, isAuthenticated, authState, accessToken } = useAuth()
+  const location = useLocation()
+  const hasTriggeredAutoHandoff = useRef(false)
+
+  useEffect(() => {
+    if (loading || hasTriggeredAutoHandoff.current) {
+      return
+    }
+
+    const isCallbackRoute = location.pathname === '/auth/callback'
+    const params = new URLSearchParams(location.search)
+    const callbackResult = params.get('result')
+    const isCallbackQueryFlow = callbackResult === 'success' || callbackResult === 'decision'
+    if (isCallbackRoute || isCallbackQueryFlow) {
+      return
+    }
+
+    if (isAuthenticated && authState === 'AUTHENTICATED_LINKED' && accessToken) {
+      hasTriggeredAutoHandoff.current = true
+      window.location.href = `${DIRECTORY_FRONTEND_URL}#access_token=${encodeURIComponent(accessToken)}`
+    }
+  }, [loading, isAuthenticated, authState, accessToken, location.pathname, location.search])
 
   if (loading) {
     return (

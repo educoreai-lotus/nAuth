@@ -2,8 +2,7 @@ import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { refreshAccessToken } from '../services/authApi'
-
-const DIRECTORY_FRONTEND_URL = 'https://directory-psi-mocha.vercel.app/'
+import { DIRECTORY_FRONTEND_URL } from '../constants/directory'
 
 function AuthCallbackPage() {
   const navigate = useNavigate()
