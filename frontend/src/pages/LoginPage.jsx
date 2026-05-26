@@ -1,3 +1,4 @@
+import { DIRECTORY_REGISTRATION_URL } from '../constants/directory'
 import { getGithubLoginUrl, getGoogleLoginUrl } from '../services/authApi'
 import { useAuth } from '../hooks/useAuth'
 import { useTheme } from '../context/ThemeContext'
@@ -124,6 +125,24 @@ function LoginPage() {
             Continue with GitHub
           </button>
         </section>
+
+        <p
+          className={`mt-6 text-center text-sm transition-all duration-300 ease-in-out ${
+            isDay ? 'text-neutral-600' : 'text-neutral-300'
+          }`}
+        >
+          Are you an HR representative and want to register your company?{' '}
+          <a
+            href={DIRECTORY_REGISTRATION_URL}
+            className={`font-medium underline underline-offset-2 transition-all duration-300 ease-in-out ${
+              isDay
+                ? 'text-primary-700 hover:text-primary-800'
+                : 'text-primary-400 hover:text-primary-300'
+            }`}
+          >
+            Register your company
+          </a>
+        </p>
 
         {error ? (
           <p
