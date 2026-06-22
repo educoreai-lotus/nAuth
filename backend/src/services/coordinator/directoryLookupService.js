@@ -123,6 +123,7 @@ export async function lookupUserViaCoordinator(providerIdentity) {
       primary_role: '',
       roles: [],
       is_system_admin: false,
+      is_trainer: false,
     },
   }
 
@@ -176,6 +177,7 @@ export async function lookupUserViaCoordinator(providerIdentity) {
       primary_role: Boolean(directoryData.primary_role),
       roles_count: Array.isArray(directoryData.roles) ? directoryData.roles.length : 0,
       is_system_admin: Boolean(directoryData.is_system_admin),
+      is_trainer: Boolean(directoryData.is_trainer),
     })
 
     const decision = decideAuthState(directoryData)

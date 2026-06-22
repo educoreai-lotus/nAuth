@@ -9,7 +9,8 @@
     "start": "node src/server.js",
     "register:coordinator": "node scripts/registerWithCoordinator.js",
     "upload-migration": "node scripts/uploadMigration.js",
-    "generate:jwt-keys": "node scripts/generateJwtKeys.js"
+    "generate:jwt-keys": "node scripts/generateJwtKeys.js",
+    "test": "node --test src/services/trainerAuth.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

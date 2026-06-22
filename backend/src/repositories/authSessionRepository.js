@@ -42,6 +42,7 @@ export async function upsertProviderIdentity(authUserId, providerIdentity, direc
         : '',
     roles: normalizeRolesForMetadata(directoryData),
     is_system_admin: Boolean(directoryData.is_system_admin),
+    is_trainer: Boolean(directoryData.is_trainer),
   }
 
   const result = await executeQuery(

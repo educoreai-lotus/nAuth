@@ -26,6 +26,7 @@ function buildValidResponse(
   newAccessToken = '',
   primaryRole = '',
   isSystemAdmin = false,
+  isTrainer = false,
 ) {
   return {
     valid: true,
@@ -36,6 +37,7 @@ function buildValidResponse(
     new_access_token: newAccessToken,
     primary_role: primaryRole || '',
     is_system_admin: Boolean(isSystemAdmin),
+    is_trainer: Boolean(isTrainer),
   }
 }
 
@@ -54,6 +56,13 @@ function mergeIsSystemAdmin(verified, sessionDirectory) {
   return Boolean(sessionDirectory.isSystemAdmin)
 }
 
+function mergeIsTrainer(verified, sessionDirectory) {
+  if (Object.prototype.hasOwnProperty.call(verified, 'isTrainer')) {
+    return Boolean(verified.isTrainer)
+  }
+  return Boolean(sessionDirectory.isTrainer)
+}
+
 function readDirectoryContextFromSession(sessionContext) {
   const profileMetadata = sessionContext?.profile_metadata || {}
   return {
@@ -64,6 +73,7 @@ function readDirectoryContextFromSession(sessionContext) {
         ? String(profileMetadata.primary_role)
         : '',
     isSystemAdmin: Boolean(profileMetadata.is_system_admin),
+    isTrainer: Boolean(profileMetadata.is_trainer),
   }
 }
 
@@ -117,6 +127,7 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
     const organizationId = verified.organizationId || sessionDirectory.organizationId
     const primaryRole = mergePrimaryRole(verified, sessionDirectory)
     const isSystemAdmin = mergeIsSystemAdmin(verified, sessionDirectory)
+    const isTrainer = mergeIsTrainer(verified, sessionDirectory)
 
     if (!matchesOptionalPayloadContext(payload, directoryUserId, organizationId)) {
       return buildInvalidResponse('DIRECTORY_CONTEXT_MISMATCH')
@@ -125,6 +136,7 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
     console.log('[nAuth][TokenValidation] Optional context (valid token):', {
       has_primary_role: Boolean(primaryRole),
       is_system_admin: isSystemAdmin,
+      is_trainer: isTrainer,
     })
 
     return buildValidResponse(
@@ -134,6 +146,7 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
       '',
       primaryRole,
       isSystemAdmin,
+      isTrainer,
     )
   } catch (error) {
     if (error?.name !== 'TokenExpiredError') {
@@ -152,6 +165,7 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
       const organizationId = expiredClaims.organizationId || sessionDirectory.organizationId
       const primaryRole = mergePrimaryRole(expiredClaims, sessionDirectory)
       const isSystemAdmin = mergeIsSystemAdmin(expiredClaims, sessionDirectory)
+      const isTrainer = mergeIsTrainer(expiredClaims, sessionDirectory)
 
       if (!matchesOptionalPayloadContext(payload, directoryUserId, organizationId)) {
         return buildInvalidResponse('DIRECTORY_CONTEXT_MISMATCH')
@@ -166,6 +180,7 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
             organization_id: organizationId,
             primary_role: primaryRole,
             is_system_admin: isSystemAdmin,
+            is_trainer: isTrainer,
           },
         }),
       )
@@ -173,6 +188,7 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
       console.log('[nAuth][TokenValidation] Optional context (refreshed token):', {
         has_primary_role: Boolean(primaryRole),
         is_system_admin: isSystemAdmin,
+        is_trainer: isTrainer,
       })
 
       return buildValidResponse(
@@ -182,6 +198,7 @@ export async function handleCoordinatorTokenValidationRequest(body = {}) {
         refreshedToken,
         primaryRole,
         isSystemAdmin,
+        isTrainer,
       )
     } catch (refreshError) {
       return buildInvalidResponse(refreshError?.message || 'ACCESS_TOKEN_INVALID')

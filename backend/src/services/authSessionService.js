@@ -34,6 +34,7 @@ export function buildAccessClaims({ authUserId, provider, directoryData }) {
         ? String(directoryData.primary_role)
         : '',
     isSystemAdmin: Boolean(directoryData.is_system_admin),
+    isTrainer: Boolean(directoryData.is_trainer),
   }
 }
 
@@ -99,6 +100,7 @@ function getDirectoryDataFromProfileMetadata(profileMetadata) {
         : '',
     roles,
     is_system_admin: Boolean(profileMetadata?.is_system_admin),
+    is_trainer: Boolean(profileMetadata?.is_trainer),
   }
 }
 
@@ -146,6 +148,7 @@ export async function refreshAuthenticatedSession(cookieHeader) {
     has_primary_role: Boolean(directoryData.primary_role),
     roles_count: directoryData.roles.length,
     is_system_admin: directoryData.is_system_admin,
+    is_trainer: directoryData.is_trainer,
   })
   const accessToken = signAccessToken(
     buildAccessClaims({

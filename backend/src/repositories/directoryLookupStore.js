@@ -22,6 +22,7 @@ export function saveDirectoryLookupResult({ providerIdentity, directoryData, aut
         : '',
     roles: Array.isArray(directoryData.roles) ? directoryData.roles : [],
     is_system_admin: Boolean(directoryData.is_system_admin),
+    is_trainer: Boolean(directoryData.is_trainer),
     created_at: new Date().toISOString(),
   }
 
