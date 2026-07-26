@@ -1,3 +1,4 @@
+import RagChatHost from './components/RagChatHost'
 import { useTheme } from './context/ThemeContext'
 
 function Layout({ children }) {
@@ -10,6 +11,7 @@ function Layout({ children }) {
       }`}
     >
       {children}
+      <RagChatHost />
     </div>
   )
 }
