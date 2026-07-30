@@ -1,12 +1,16 @@
 const DEFAULT_EMBED_URL = 'https://rag-production-3a4c.up.railway.app/embed/bot.js'
 const DEFAULT_HOST_ID = 'NAUTH_PORTAL'
+const GUEST_HOST_ID = 'NAUTH_PUBLIC'
+const GUEST_INIT_KEY = `guest|${GUEST_HOST_ID}`
 const SCRIPT_ATTR = 'data-educore-rag-embed'
 
 let scriptPromise = null
 let activeInitKey = null
+let activeOwnerGeneration = null
+let syncGeneration = 0
 
 function isDev() {
-  return Boolean(import.meta.env.DEV)
+  return Boolean(import.meta.env?.DEV)
 }
 
 function warn(message) {
@@ -15,9 +19,23 @@ function warn(message) {
   }
 }
 
+function isSyncCurrent(syncToken) {
+  return syncToken == null || syncToken === syncGeneration
+}
+
+function containerExists() {
+  return typeof document !== 'undefined' && Boolean(document.querySelector('#edu-bot-container'))
+}
+
+/** Advance the sync generation so only the latest lifecycle effect may initialize. */
+export function nextRagSyncGeneration() {
+  syncGeneration += 1
+  return syncGeneration
+}
+
 export function getRagConfig() {
-  const embedUrl = String(import.meta.env.VITE_RAG_EMBED_URL || DEFAULT_EMBED_URL).trim()
-  const hostId = String(import.meta.env.VITE_RAG_HOST_ID || DEFAULT_HOST_ID).trim()
+  const embedUrl = String(import.meta.env?.VITE_RAG_EMBED_URL || DEFAULT_EMBED_URL).trim()
+  const hostId = String(import.meta.env?.VITE_RAG_HOST_ID || DEFAULT_HOST_ID).trim()
 
   return {
     embedUrl,
@@ -136,7 +154,22 @@ export function ensureRagScriptLoaded(embedUrl) {
   return scriptPromise
 }
 
-export function destroyEducoreBotSafe() {
+/**
+ * Destroy the active Educore widget when this owner still owns it,
+ * or when force=true (page unload / mode switch inside a current sync).
+ */
+export function destroyEducoreBotSafe(options = {}) {
+  const { ownerGeneration = null, force = false } = options
+
+  if (
+    !force &&
+    ownerGeneration != null &&
+    activeOwnerGeneration != null &&
+    ownerGeneration !== activeOwnerGeneration
+  ) {
+    return { status: 'skipped_stale_cleanup' }
+  }
+
   try {
     if (typeof window !== 'undefined' && typeof window.destroyEducoreBot === 'function') {
       window.destroyEducoreBot()
@@ -145,62 +178,154 @@ export function destroyEducoreBotSafe() {
     warn('destroyEducoreBot failed; continuing without blocking nAuth.')
   } finally {
     activeInitKey = null
+    activeOwnerGeneration = null
   }
+
+  return { status: 'destroyed' }
 }
 
-export async function syncEducoreBot({ accessToken, isAuthenticated }) {
-  const { embedUrl, hostId, enabled } = getRagConfig()
+export async function syncGuestEducoreBot({ syncToken = null } = {}) {
+  const { embedUrl, enabled } = getRagConfig()
 
   if (!enabled) {
-    destroyEducoreBotSafe()
+    destroyEducoreBotSafe({ ownerGeneration: syncToken, force: syncToken == null })
     return { status: 'disabled' }
   }
 
-  if (!isAuthenticated || !accessToken) {
-    destroyEducoreBotSafe()
-    return { status: 'skipped_unauthenticated' }
+  if (!isSyncCurrent(syncToken)) {
+    return { status: 'stale_sync_cancelled' }
+  }
+
+  if (activeInitKey === GUEST_INIT_KEY && typeof window.initializeEducoreBot === 'function') {
+    if (syncToken != null) {
+      activeOwnerGeneration = syncToken
+    }
+    return { status: 'already_initialized_guest' }
+  }
+
+  try {
+    await ensureRagScriptLoaded(embedUrl)
+  } catch (error) {
+    if (!isSyncCurrent(syncToken)) {
+      return { status: 'stale_sync_cancelled' }
+    }
+    warn(error?.message || 'RAG script load failed.')
+    return { status: 'script_failed' }
+  }
+
+  if (!isSyncCurrent(syncToken)) {
+    return { status: 'stale_sync_cancelled' }
+  }
+
+  if (typeof window.initializeEducoreBot !== 'function') {
+    warn('initializeEducoreBot is unavailable after script load.')
+    return { status: 'initializer_unavailable' }
+  }
+
+  if (!containerExists()) {
+    warn('Skipping Guest RAG init: #edu-bot-container is missing.')
+    return { status: 'container_missing' }
+  }
+
+  if (activeInitKey && activeInitKey !== GUEST_INIT_KEY) {
+    destroyEducoreBotSafe({ force: true })
+  }
+
+  if (!isSyncCurrent(syncToken)) {
+    return { status: 'stale_sync_cancelled' }
+  }
+
+  try {
+    window.initializeEducoreBot({
+      microservice: GUEST_HOST_ID,
+      allowGuest: true,
+    })
+    activeInitKey = GUEST_INIT_KEY
+    activeOwnerGeneration = syncToken
+    return { status: 'initialized_guest' }
+  } catch (error) {
+    destroyEducoreBotSafe({ force: true })
+    warn(error?.message || 'initializeEducoreBot Guest threw an error.')
+    return { status: 'init_failed' }
+  }
+}
+
+export async function syncAuthenticatedEducoreBot({ accessToken, syncToken = null }) {
+  const { embedUrl, hostId, enabled } = getRagConfig()
+
+  if (!enabled) {
+    destroyEducoreBotSafe({ ownerGeneration: syncToken, force: syncToken == null })
+    return { status: 'disabled' }
+  }
+
+  if (!isSyncCurrent(syncToken)) {
+    return { status: 'stale_sync_cancelled' }
+  }
+
+  if (!accessToken) {
+    destroyEducoreBotSafe({ ownerGeneration: syncToken, force: true })
+    return { status: 'skipped_missing_token' }
   }
 
   const identity = resolveRagIdentity(accessToken)
   if (!identity) {
-    destroyEducoreBotSafe()
+    destroyEducoreBotSafe({ force: true })
     warn('Skipping RAG init: access token payload could not be decoded.')
     return { status: 'skipped_malformed_token' }
   }
 
   if (!identity.userId) {
-    destroyEducoreBotSafe()
+    destroyEducoreBotSafe({ force: true })
     warn('Skipping RAG init: directoryUserId missing from access token.')
     return { status: 'skipped_missing_user' }
   }
 
   if (!identity.tenantId) {
-    destroyEducoreBotSafe()
+    destroyEducoreBotSafe({ force: true })
     warn('Skipping RAG init: organizationId missing from access token (no default tenant).')
     return { status: 'skipped_missing_tenant' }
   }
 
   const initKey = `${hostId}|${identity.initKey}`
   if (activeInitKey === initKey && typeof window.initializeEducoreBot === 'function') {
+    if (syncToken != null) {
+      activeOwnerGeneration = syncToken
+    }
     return { status: 'already_initialized' }
   }
 
   try {
     await ensureRagScriptLoaded(embedUrl)
   } catch (error) {
-    destroyEducoreBotSafe()
+    if (!isSyncCurrent(syncToken)) {
+      return { status: 'stale_sync_cancelled' }
+    }
+    destroyEducoreBotSafe({ force: true })
     warn(error?.message || 'RAG script load failed.')
     return { status: 'script_failed' }
   }
 
+  if (!isSyncCurrent(syncToken)) {
+    return { status: 'stale_sync_cancelled' }
+  }
+
   if (typeof window.initializeEducoreBot !== 'function') {
-    destroyEducoreBotSafe()
+    destroyEducoreBotSafe({ force: true })
     warn('initializeEducoreBot is unavailable after script load.')
     return { status: 'initializer_unavailable' }
   }
 
+  if (!containerExists()) {
+    warn('Skipping authenticated RAG init: #edu-bot-container is missing.')
+    return { status: 'container_missing' }
+  }
+
   if (activeInitKey && activeInitKey !== initKey) {
-    destroyEducoreBotSafe()
+    destroyEducoreBotSafe({ force: true })
+  }
+
+  if (!isSyncCurrent(syncToken)) {
+    return { status: 'stale_sync_cancelled' }
   }
 
   try {
@@ -211,10 +336,42 @@ export async function syncEducoreBot({ accessToken, isAuthenticated }) {
       tenantId: identity.tenantId,
     })
     activeInitKey = initKey
+    activeOwnerGeneration = syncToken
     return { status: 'initialized' }
   } catch (error) {
-    destroyEducoreBotSafe()
+    destroyEducoreBotSafe({ force: true })
     warn(error?.message || 'initializeEducoreBot threw an error.')
     return { status: 'init_failed' }
   }
+}
+
+/**
+ * Synchronize Educore bot to authenticated or Guest mode.
+ * Authenticated state always wins; never falls back to Guest while authenticated.
+ */
+export async function syncEducoreBot({ accessToken, isAuthenticated, syncToken = null }) {
+  const { enabled } = getRagConfig()
+
+  if (!enabled) {
+    destroyEducoreBotSafe({ ownerGeneration: syncToken, force: syncToken == null })
+    return { status: 'disabled' }
+  }
+
+  if (!isSyncCurrent(syncToken)) {
+    return { status: 'stale_sync_cancelled' }
+  }
+
+  if (isAuthenticated) {
+    return syncAuthenticatedEducoreBot({ accessToken, syncToken })
+  }
+
+  return syncGuestEducoreBot({ syncToken })
+}
+
+/** Test-only: reset module-level RAG host state. */
+export function __resetRagBotForTests() {
+  scriptPromise = null
+  activeInitKey = null
+  activeOwnerGeneration = null
+  syncGeneration = 0
 }
